@@ -1,47 +1,37 @@
+from flask import Flask, request, jsonify
 import requests
-import json
 
-session = requests.Session()
+app = Flask(__name__)   # 🔥 YE LINE MUST HAI
 
-# 🔐 LOGIN API
-login_url = "https://edge-service.emizainc.com/identity-service/user/login"
+@app.route("/")
+def home():
+    return "Server Running 🚀"
 
-login_payload = {
-    "cred": "billdesk@swissmilitaryindia.com",  # 🔥 MUST
-    "password": "Emiza@123",
-    "user_type": "SELLERS",
-    "is_otp_login": False
-}
+@app.route("/get-pim", methods=["GET"])
+def get_pim():
+    login_url = "https://edge-service.emizainc.com/identity-service/user/login"
 
-headers = {
-    "content-type": "application/json",
-    "x-device-id": "armaze-web"
-}
+    payload = {
+        "cred": "billdesk@swissmilitaryindia.com",
+        "password": "Emiza@123",
+        "user_type": "SELLERS",
+        "is_otp_login": False
+    }
 
-login_res = session.post(login_url, json=login_payload, headers=headers)
+    headers = {
+        "content-type": "application/json",
+        "x-device-id": "armaze-web"
+    }
 
-# ✅ STATUS CHECK
-print("STATUS CODE:", login_res.status_code)
+    res = requests.post(login_url, json=payload, headers=headers)
 
-# ✅ BODY PRINT
-print("\n===== LOGIN RESPONSE BODY =====")
-try:
-    print(json.dumps(login_res.json(), indent=2))
-except:
-    print(login_res.text)
+    pim_sid = res.headers.get("pim-sid")
 
-# ✅ HEADERS PRINT
-print("\n===== LOGIN RESPONSE HEADERS =====")
-for key, value in login_res.headers.items():
-    print(f"{key}: {value}")
+    return jsonify({
+        "pim_sid": pim_sid
+    })
 
-# 🔥 PIM-SID EXTRACT
-pim_sid = login_res.headers.get("pim-sid")
 
-print("\n🔥 PIM SID:", pim_sid)
-
-# ❗ SAFETY CHECK
-if not pim_sid:
-    print("❌ ERROR: PIM SID nahi mila → login issue")
-else:
-    print("✅ READY FOR ORDER API")
+# 🔥 LOCAL RUN (IMPORTANT)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
