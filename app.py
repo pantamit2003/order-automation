@@ -3,26 +3,54 @@ import requests
 
 app = Flask(__name__)
 
-# ✅ HOME CHECK
+# 🔥 MULTI WAREHOUSE CONFIG
+ACCOUNTS = {
+    "RATAN": {
+        "cred": "billdesk@swissmilitaryindia.com",
+        "password": "Emiza@123",
+        "seller_id": "80000493",
+        "warehouse_id": "600071"
+    },
+    "ACT B2B": {
+        "cred": "act@swissmilitaryindia.com",
+        "password": "Swiss@123",
+        "seller_id": "80000332",
+        "warehouse_id": "600040"
+    }
+}
+
+# ✅ HOME
 @app.route("/")
 def home():
     return "Server Running 🚀"
 
 
-# 🔥 CREATE ORDER (MULTI SKU SUPPORT)
+# 🔥 CREATE ORDER
 @app.route("/create-order", methods=["POST"])
 def create_order():
     try:
         data = request.json
 
         # -----------------------
-        # 🔐 STEP 1: LOGIN API
+        # 🧠 STEP 0: GET WAREHOUSE
+        # -----------------------
+        warehouse = data.get("warehouse")
+        account = ACCOUNTS.get(warehouse)
+
+        if not account:
+            return jsonify({
+                "status": "FAILED",
+                "message": "Invalid warehouse"
+            })
+
+        # -----------------------
+        # 🔐 STEP 1: LOGIN
         # -----------------------
         login_url = "https://edge-service.emizainc.com/identity-service/user/login"
 
         login_payload = {
-            "cred": "billdesk@swissmilitaryindia.com",
-            "password": "Emiza@123",
+            "cred": account["cred"],
+            "password": account["password"],
             "user_type": "SELLERS",
             "is_otp_login": False
         }
@@ -42,27 +70,24 @@ def create_order():
         if not pim_sid:
             return jsonify({
                 "status": "FAILED",
-                "message": "Login failed (no pim-sid)"
+                "message": "Login failed"
             })
 
-
         # -----------------------
-        # 📦 STEP 2: PREPARE LINE ITEMS (MULTI SKU)
+        # 📦 STEP 2: LINE ITEMS
         # -----------------------
         line_items = data.get("line_items", [])
 
-        if not line_items or len(line_items) == 0:
+        if not line_items:
             return jsonify({
                 "status": "FAILED",
                 "message": "No line_items received"
             })
 
-        # 🔥 fix required fields
         for item in line_items:
             item["shelf_life"] = 0
             if not item.get("lineitem_price"):
                 item["lineitem_price"] = 1
-
 
         # -----------------------
         # 📦 STEP 3: ORDER API
@@ -72,10 +97,10 @@ def create_order():
         order_headers = {
             "pim-sid": pim_sid,
             "x-device-id": "armaze-web",
-            "x-seller-id": "80000493",
+            "x-seller-id": account["seller_id"],
             "x-tenant-id": "1",
             "x-user-id": "300000000850",
-            "x-warehouse-id": "600071",
+            "x-warehouse-id": account["warehouse_id"],
             "content-type": "application/json"
         }
 
@@ -108,19 +133,17 @@ def create_order():
 
         order_result = order_res.json()
 
-        # 🔥 ORDER ID EXTRACT
+        # 🔥 ORDER ID
         order_id = None
         if "callbacks" in order_result and order_result["callbacks"]:
             order_id = list(order_result["callbacks"].keys())[0]
 
-
         # -----------------------
-        # ✅ SUCCESS / FAIL CHECK
+        # ✅ RESPONSE
         # -----------------------
         if order_res.status_code == 200 and order_result.get("id"):
             return jsonify({
                 "status": "SUCCESS",
-                "message": "Order Created Successfully",
                 "order_id": order_id,
                 "emiza_response": order_result
             })
@@ -138,6 +161,6 @@ def create_order():
         })
 
 
-# 🔥 RUN SERVER
+# 🔥 RUN
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
