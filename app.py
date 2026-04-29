@@ -1,12 +1,15 @@
 from flask import Flask, request, jsonify
 import requests
 
-app = Flask(__name__)   # 🔥 YE LINE MUST HAI
+app = Flask(__name__)
 
+# ✅ HOME
 @app.route("/")
 def home():
     return "Server Running 🚀"
 
+
+# 🔐 GET PIM (REAL)
 @app.route("/get-pim", methods=["GET"])
 def get_pim():
     login_url = "https://edge-service.emizainc.com/identity-service/user/login"
@@ -32,6 +35,17 @@ def get_pim():
     })
 
 
-# 🔥 LOCAL RUN (IMPORTANT)
+# 🔥 CREATE ORDER (TEST VERSION)
+@app.route("/create-order", methods=["POST"])
+def create_order():
+    data = request.json
+
+    return jsonify({
+        "status": "SUCCESS",
+        "received_data": data
+    })
+
+
+# 🔥 RUN
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
