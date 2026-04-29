@@ -9,7 +9,7 @@ def home():
     return "Server Running 🚀"
 
 
-# 🔥 CREATE ORDER
+# 🔥 CREATE ORDER (MULTI SKU SUPPORT)
 @app.route("/create-order", methods=["POST"])
 def create_order():
     try:
@@ -47,7 +47,25 @@ def create_order():
 
 
         # -----------------------
-        # 📦 STEP 2: ORDER API
+        # 📦 STEP 2: PREPARE LINE ITEMS (MULTI SKU)
+        # -----------------------
+        line_items = data.get("line_items", [])
+
+        if not line_items or len(line_items) == 0:
+            return jsonify({
+                "status": "FAILED",
+                "message": "No line_items received"
+            })
+
+        # 🔥 fix required fields
+        for item in line_items:
+            item["shelf_life"] = 0
+            if not item.get("lineitem_price"):
+                item["lineitem_price"] = 1
+
+
+        # -----------------------
+        # 📦 STEP 3: ORDER API
         # -----------------------
         order_url = "https://edge-service.emizainc.com/aggregator/api/ve1/oms/manual"
 
@@ -67,14 +85,10 @@ def create_order():
             "same_as_billing": data.get("same_as_billing"),
             "shipping_name": data.get("shipping_name"),
             "shipping_phone": data.get("shipping_phone"),
-            "line_items": [
-                {
-                    "lineitem_sku": data.get("lineitem_sku"),
-                    "lineitem_quantity": data.get("lineitem_quantity"),
-                    "lineitem_price": data.get("lineitem_price", 1),
-                    "shelf_life": 0
-                }
-            ],
+
+            # 🔥 MULTI SKU
+            "line_items": line_items,
+
             "billing_address1": data.get("billing_address1"),
             "billing_state": data.get("billing_state"),
             "billing_city": data.get("billing_city"),
@@ -98,6 +112,7 @@ def create_order():
         order_id = None
         if "callbacks" in order_result and order_result["callbacks"]:
             order_id = list(order_result["callbacks"].keys())[0]
+
 
         # -----------------------
         # ✅ SUCCESS / FAIL CHECK
