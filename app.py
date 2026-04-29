@@ -71,7 +71,8 @@ def create_order():
                 {
                     "lineitem_sku": data.get("lineitem_sku"),
                     "lineitem_quantity": data.get("lineitem_quantity"),
-                    "lineitem_price": data.get("lineitem_price", 1)
+                    "lineitem_price": data.get("lineitem_price", 1),
+                    "shelf_life": 0    
                 }
             ],
             "billing_address1": data.get("billing_address1"),
