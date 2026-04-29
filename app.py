@@ -9,7 +9,7 @@ def home():
     return "Server Running 🚀"
 
 
-# 🔥 CREATE ORDER (FINAL)
+# 🔥 CREATE ORDER
 @app.route("/create-order", methods=["POST"])
 def create_order():
     try:
@@ -72,7 +72,7 @@ def create_order():
                     "lineitem_sku": data.get("lineitem_sku"),
                     "lineitem_quantity": data.get("lineitem_quantity"),
                     "lineitem_price": data.get("lineitem_price", 1),
-                    "shelf_life": 0    
+                    "shelf_life": 0
                 }
             ],
             "billing_address1": data.get("billing_address1"),
@@ -94,6 +94,11 @@ def create_order():
 
         order_result = order_res.json()
 
+        # 🔥 ORDER ID EXTRACT
+        order_id = None
+        if "callbacks" in order_result and order_result["callbacks"]:
+            order_id = list(order_result["callbacks"].keys())[0]
+
         # -----------------------
         # ✅ SUCCESS / FAIL CHECK
         # -----------------------
@@ -101,6 +106,7 @@ def create_order():
             return jsonify({
                 "status": "SUCCESS",
                 "message": "Order Created Successfully",
+                "order_id": order_id,
                 "emiza_response": order_result
             })
         else:
