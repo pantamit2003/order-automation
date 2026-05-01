@@ -105,27 +105,32 @@ def create_order():
         }
 
         order_payload = {
-            "name": data.get("name"),
-            "phone": data.get("phone"),
-            "same_as_billing": data.get("same_as_billing"),
-            "shipping_name": data.get("shipping_name"),
-            "shipping_phone": data.get("shipping_phone"),
-
-            # 🔥 MULTI SKU
-            "line_items": line_items,
-
-            "billing_address1": data.get("billing_address1"),
-            "billing_state": data.get("billing_state"),
-            "billing_city": data.get("billing_city"),
-            "billing_pincode": data.get("billing_pincode"),
-            "shipping_address1": data.get("shipping_address1"),
-            "shipping_state": data.get("shipping_state"),
-            "shipping_city": data.get("shipping_city"),
-            "shipping_pincode": data.get("shipping_pincode"),
-            "business_type": data.get("business_type"),
-            "source": data.get("source"),
-            "uploaded_by": data.get("uploaded_by")
-        }
+                "name": data.get("name"),
+                "phone": data.get("phone"),
+                "same_as_billing": data.get("same_as_billing"),
+                "shipping_name": data.get("shipping_name"),
+                "shipping_phone": data.get("shipping_phone"),
+            
+                "line_items": line_items,
+            
+                "billing_address1": data.get("billing_address1"),
+                "billing_state": data.get("billing_state"),
+                "billing_city": data.get("billing_city"),
+                "billing_pincode": data.get("billing_pincode"),
+                "shipping_address1": data.get("shipping_address1"),
+                "shipping_state": data.get("shipping_state"),
+                "shipping_city": data.get("shipping_city"),
+                "shipping_pincode": data.get("shipping_pincode"),
+                "business_type": data.get("business_type"),
+            
+                # 🔥 IMPORTANT CHANGE
+                "source": "seller-dashboard",
+            
+                "uploaded_by": data.get("uploaded_by"),
+            
+                # 🔥 NEW FIELD
+                "remarks": data.get("remarks")
+            }
 
         order_res = requests.post(order_url, json=order_payload, headers=order_headers)
 
