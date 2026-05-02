@@ -16,6 +16,14 @@ ACCOUNTS = {
         "password": "Swiss@123",
         "seller_id": "80000332",
         "warehouse_id": "600040"
+    },
+
+    #Retail WARHOUSE
+    "RETAIL": {
+        "cred": "billdesk@swissmilitaryindia.com",
+        "password": "Emiza@123",
+        "seller_id": "80000333",
+        "warehouse_id": "600040"
     }
 }
 
