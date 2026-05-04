@@ -93,10 +93,24 @@ def create_order():
             })
 
         for item in line_items:
-            item["shelf_life"] = 0
-            if not item.get("lineitem_price"):
-                item["lineitem_price"] = 1
-
+                # ✅ MRP ALWAYS 0
+                item["lineitem_price"] = 0
+            
+                # ✅ Selling price MUST come from sheet
+                if "selling_price_new" not in item or item["selling_price_new"] in [None, "", 0]:
+                    return jsonify({
+                        "status": "FAILED",
+                        "message": f"Missing or invalid price for SKU: {item.get('lineitem_sku')}"
+                    })
+            
+                # ✅ force numeric
+                item["selling_price_new"] = float(item["selling_price_new"])
+            
+                # ✅ required fields
+                item["shelf_life"] = 0
+                item["zone"] = None
+                item["id"] = None
+                        
         # -----------------------
         # 📦 STEP 3: ORDER API
         # -----------------------
