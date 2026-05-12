@@ -187,6 +187,83 @@ def create_order():
             "message": str(e)
         })
 
+# 🔥 GET ORDER STATUS
+@app.route("/get-order-status/<order_id>", methods=["GET"])
+def get_order_status(order_id):
+
+    try:
+
+        # 🔐 LOGIN FIRST
+        login_url = "https://edge-service.emizainc.com/identity-service/user/login"
+
+        login_payload = {
+            "cred": "act@swissmilitaryindia.com",
+            "password": "Swiss@123",
+            "user_type": "SELLERS",
+            "is_otp_login": False
+        }
+
+        login_headers = {
+            "content-type": "application/json",
+            "x-device-id": "armaze-web"
+        }
+
+        login_res = requests.post(
+            login_url,
+            json=login_payload,
+            headers=login_headers
+        )
+
+        pim_sid = login_res.headers.get("pim-sid")
+
+        if not pim_sid:
+            return jsonify({
+                "status": "FAILED",
+                "message": "Login failed"
+            })
+
+        # 🔥 ORDER STATUS API
+        status_url = f"https://edge-service.emizainc.com/warehouse-order-processing-service/api/v1/warehouse/order/{order_id}"
+
+        status_headers = {
+            "pim-sid": pim_sid,
+            "x-device-id": "armaze-web",
+            "content-type": "application/json"
+        }
+
+        status_res = requests.get(
+            status_url,
+            headers=status_headers
+        )
+
+        print("STATUS RESPONSE:", status_res.text)
+
+        result = status_res.json()
+
+        # 🔥 TRY MULTIPLE FIELDS
+        live_status = (
+            result.get("orderStatus") or
+            result.get("status") or
+            result.get("order_status") or
+            result.get("currentStatus") or
+            "NOT FOUND"
+        )
+
+        return jsonify({
+            "success": True,
+            "order_id": order_id,
+            "status": live_status,
+            "raw": result
+        })
+
+    except Exception as e:
+
+        print("STATUS ERROR:", str(e))
+
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        })
 
 # 🔥 RUN
 if __name__ == "__main__":
