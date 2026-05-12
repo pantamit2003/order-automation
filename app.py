@@ -257,7 +257,10 @@ def get_order_status(order_id):
         result = status_res.json()
 
         # 🔥 TRY MULTIPLE FIELDS
-        live_status = str(result)
+        live_status = (
+            result.get("result", {}).get("status")
+            or "NOT FOUND"
+        )
 
         return jsonify({
             "success": True,
