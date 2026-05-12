@@ -193,12 +193,23 @@ def get_order_status(order_id):
 
     try:
 
+        # 🔥 GET WAREHOUSE FROM URL
+        warehouse = request.args.get("warehouse")
+
+        account = ACCOUNTS.get(warehouse)
+
+        if not account:
+            return jsonify({
+                "status": "FAILED",
+                "message": "Invalid warehouse"
+            })
+
         # 🔐 LOGIN FIRST
         login_url = "https://edge-service.emizainc.com/identity-service/user/login"
 
         login_payload = {
-            "cred": "act@swissmilitaryindia.com",
-            "password": "Swiss@123",
+            "cred": account["cred"],
+            "password": account["password"],
             "user_type": "SELLERS",
             "is_otp_login": False
         }
@@ -228,6 +239,10 @@ def get_order_status(order_id):
         status_headers = {
             "pim-sid": pim_sid,
             "x-device-id": "armaze-web",
+            "x-seller-id": account["seller_id"],
+            "x-tenant-id": "1",
+            "x-user-id": "300000000850",
+            "x-warehouse-id": account["warehouse_id"],
             "content-type": "application/json"
         }
 
@@ -236,6 +251,7 @@ def get_order_status(order_id):
             headers=status_headers
         )
 
+        print("STATUS CODE:", status_res.status_code)
         print("STATUS RESPONSE:", status_res.text)
 
         result = status_res.json()
@@ -252,6 +268,7 @@ def get_order_status(order_id):
         return jsonify({
             "success": True,
             "order_id": order_id,
+            "warehouse": warehouse,
             "status": live_status,
             "raw": result
         })
